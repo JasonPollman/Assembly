@@ -1,0 +1,116 @@
+# JASON JAMES POLLMAN
+# ALYSSA DYER
+# ITCS 3181
+# MARCH 27, 2014
+# LAB 8
+
+.text
+.align 2
+.globl main
+
+main:
+
+li $t0, 0
+li $t3, 0
+li $t6, 0
+
+la $t7, num1
+la $t8, num2
+
+lw $s1, ($t7)
+lw $s2, ($t8)
+
+multi:
+
+  andi $t2, $s2, 1
+  beq $t2, $zero, clear
+
+  addu $t0, $t0, $s1  # If Multiplicand & 1, Accumulate Results
+  sw $t0, result1
+
+  bge $t0, 2147483647 reset # 2147483647 = 2^31 - 1
+
+clear:
+
+  sll $s1, $s1, 1 # Shift Multiplier Left
+  sra $s2, $s2, 1 # Shift Multiplicand Right
+
+  bgt $s2, $zero, multi
+
+reset:
+  li $t0, 0
+
+multi_2:
+
+  andi $t2, $s2, 1
+  beq $t2, $zero, clear_2
+
+  addu $t0, $t0, $s1  # If Multiplicand & 1, Accumulate Results
+  sw $t0, result2
+
+  bge $t0, 2147483647 multi_2
+
+clear_2:
+
+  sll $s1, $s1, 1 # Shift Multiplier Left
+  sra $s2, $s2, 1 # Shift Multiplicand Right
+
+  bgt $s2, $zero, multi_2
+
+
+la $t1 result2
+lw $t0 ($t1)
+
+move $t7, $t0      # Move the value to a different regsiter
+li $t8, 32         # Set up a loop counter
+
+print_bin:
+  rol $t7, $t7, 1    # Roll the bits left by one bit - wraps highest bit to lowest bit (where we need it!)
+  and $t6, $t7, 1    # Mask off low bit (logical AND with 000...0001)
+  addu $t6, $t6, 48   # Combine it with ASCII code for '0', becomes 0 or 1 
+        
+  move $a0, $t6      # Output the ASCII character
+  li $v0, 11
+  syscall
+        
+  sub $t8, $t8, 1   # Decrement loop counter
+  bne $t8, $zero, print_bin  # Keep looping if loop counter is not zero
+
+la $t1 result1
+lw $t0 ($t1)
+
+move $t7, $t0      # Move the value to a different regsiter
+li $t8, 32         # Set up a loop counter
+
+print_bin_two:
+  rol $t7, $t7, 1    # Roll the bits left by one bit - wraps highest bit to lowest bit (where we need it!)
+  and $t6, $t7, 1    # Mask off low bit (logical AND with 000...0001)
+  addu $t6, $t6, 48   # Combine it with ASCII code for '0', becomes 0 or 1 
+        
+  move $a0, $t6      # Output the ASCII character
+  li $v0, 11
+  syscall
+        
+  sub $t8, $t8, 1   # Decrement loop counter
+  bne $t8, $zero, print_bin_two  # Keep looping if loop counter is not zero
+
+li $v0, 4
+la $a0, space
+syscall
+
+move $a0, $t0      # Output the ASCII character
+li $v0, 1
+syscall
+
+end: jr $ra
+
+.data
+
+  .align 8
+  result1: .word 0
+  result2: .word 0
+
+  num1: .word 10
+  num2: .word 5
+
+  space: .asciiz ", Decimal: "

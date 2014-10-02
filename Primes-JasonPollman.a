@@ -1,0 +1,112 @@
+# JASON JAMES POLLMAN
+# ITCS 3181
+# MARCH 24, 2014
+# LAB 7
+
+
+# THIS PROGRAM PRINTS PRIME NUMBERS UP TO X...
+
+# "VARIABLES"
+# $t0 — Maximum Prime Number Set by User
+# $t1 — Iterator for Outer Loop: i
+# $t2 — Iterator for Inner Loop: n
+# $t3 — Mod of n % i ($t1 % $t2)
+# $t4 — n*n
+
+
+.text
+.align 2
+.globl main
+
+main:
+
+  li $t0, 19                  # Set initial value of "Max Prime" to 19...
+  li $t1, 1                   # Set initial value of i to 1 (Will be incremented below before first iteration)
+  li $t2, 1                   # Set initial value of n to 1 (Will be incremented below before first iteration)
+  li $t3, 0                   # Just clear this out...
+  li $t4, 0                   # Just clear this out...
+
+	li $v0, 4
+	la $a0, prompt_n
+	syscall
+
+	li $v0, 5							     # Read keyboard into $v0
+	syscall
+
+	move $t0, $v0					     # Put "Max Prime" into $t0
+
+  li $v0, 4                  # Print 2 and 3 as a prime numbers
+  la $a0, initial_primes
+  syscall
+
+
+
+OuterLoop:                   # Iterates through each number from 2 to "Max Prime"
+
+	add  $t1, $t1, 1           # Increment $t1 (i)
+  
+  mult $t2, $t2              # Multiply n*n
+  mflo $t4                   # Store the results in $t4
+
+  li   $t2, 1                # Re-initialize n for Inner Loop
+
+	bgt  $t1, $t4, InnerLoop   # Jump to InnerLoop if n*n <= i
+	bgt  $t0, $t1, OuterLoop   # Repeat Outer Loop if i < MaxPrime
+
+  j EndLoop                  # Jump to "End" if no conditions above are met...
+
+
+
+InnerLoop:
+
+	add  $t2, $t2, 1				   # Increment $t2 (n)
+
+  mult $t2, $t2              # Multiply n*n
+  mflo $t4                   # Store the results in $t4
+
+	remu $t3, $t1, $t2		     # $t3 = i % n
+
+	beq  $t3, 0,   NotPrime	   # If $t3 == 0, Goto NotPrime
+	bgt  $t1, $t4, InnerLoop   # Keep looping if $t1 <= $t4
+
+  j PrintPrime  # Ended n Loop, so The Number IS Prime — Print It... ($t1 > $t4)
+
+
+
+NotPrime: 									 # Prints the Prime Number to the Screen
+
+  bgt  $t0, $t1, OuterLoop   # Return to the OuterLoop if (i < MaxPrime)
+  j EndLoop
+
+
+
+PrintPrime:                  # Prints the Prime Number and Returns to the OuterLoop
+
+	li $v0, 4
+	la $a0, space
+	syscall
+
+	li $v0, 1
+	move $a0, $t1
+	syscall
+	
+	bgt  $t0, $t1, OuterLoop   # Return to the OuterLoop if (i < MaxPrime)
+  j EndLoop
+
+
+
+EndLoop:                    # Both loops satisfied... program complete.
+
+
+end: jr $ra
+
+.data
+
+	prompt_n:
+    .asciiz "\nEnter the maximum number to print primes up to: "
+
+  initial_primes:
+    .asciiz "\n\nPrime Numbers: 2\n               3"
+
+	space:
+		.asciiz "\n               "
